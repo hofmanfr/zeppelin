@@ -35,7 +35,7 @@ RUN set -ex && \
     apt-get autoclean && \
     apt-get clean
 
-ARG version="0.10.0"
+ARG version="0.11.0-SNAPSHOT"
 
 ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8 \
@@ -61,7 +61,7 @@ COPY --from=zeppelin-distribution /opt/zeppelin/k8s ${ZEPPELIN_HOME}/k8s
 
 # Decide
 ## 1) Copy and activate all interpreters (default)
-COPY --from=interpreter-settings /opt/zeppelin/interpreter ${ZEPPELIN_HOME}/interpreter
+COPY --from=zeppelin-distribution /opt/zeppelin/interpreter ${ZEPPELIN_HOME}/interpreter
 ## 2) Copy and activate only a specific set of interpreter
 # COPY --from=zeppelin-distribution /opt/zeppelin/interpreter/spark/interpreter-setting.json ${ZEPPELIN_HOME}/interpreter/spark/interpreter-setting.json
 # COPY --from=zeppelin-distribution /opt/zeppelin/interpreter/jdbc/interpreter-setting.json ${ZEPPELIN_HOME}/interpreter/jdbc/interpreter-setting.json
@@ -69,11 +69,13 @@ COPY --from=interpreter-settings /opt/zeppelin/interpreter ${ZEPPELIN_HOME}/inte
 
 COPY log4j.properties ${ZEPPELIN_HOME}/conf/
 
-RUN mkdir -p "${ZEPPELIN_HOME}/logs" "${ZEPPELIN_HOME}/run" "${ZEPPELIN_HOME}/notebook" "${ZEPPELIN_HOME}/local-repo" && \
+RUN mkdir -p "${ZEPPELIN_HOME}/logs" "${ZEPPELIN_HOME}/run" "${ZEPPELIN_HOME}/notebook" "${ZEPPELIN_HOME}/local-repo" "${ZEPPELIN_HOME}/.ivy2/cache" "${ZEPPELIN_HOME}/.ivy2/jars"  && \
      # Allow process to edit /etc/passwd, to create a user entry for zeppelin
     chgrp root /etc/passwd && chmod ug+rw /etc/passwd && \
     # Give access to some specific folders
-    chmod -R 775 "${ZEPPELIN_HOME}/logs" "${ZEPPELIN_HOME}/run" "${ZEPPELIN_HOME}/conf" "${ZEPPELIN_HOME}/notebook" "${ZEPPELIN_HOME}/local-repo"
+    chmod -R 775 "${ZEPPELIN_HOME}/logs" "${ZEPPELIN_HOME}/run" "${ZEPPELIN_HOME}/conf" "${ZEPPELIN_HOME}/notebook" "${ZEPPELIN_HOME}/local-repo" "${ZEPPELIN_HOME}/.ivy2/cache" "${ZEPPELIN_HOME}/.ivy2/jars" 
+
+RUN wget https://repo1.maven.org/maven2/org/antlr/antlr-runtime/3.5.2/antlr-runtime-3.5.2.jar && mv antlr-runtime-3.5.2.jar ${ZEPPELIN_HOME}/.ivy2/jars/.     
 
 USER 1000
 
